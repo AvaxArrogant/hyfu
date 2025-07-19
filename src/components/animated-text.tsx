@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -14,36 +13,46 @@ interface AnimatedTextProps {
 
 const chars = '01<>/_\\|[]{}*&^%$#@!';
 
-export function AnimatedText({ text, className, delay = 0, triggerOnHover = false, neverDecrypt = false }: AnimatedTextProps) {
+export function AnimatedText({
+  text,
+  className,
+  delay = 0,
+  triggerOnHover = false,
+  neverDecrypt = false
+}: AnimatedTextProps) {
   const ref = useRef<HTMLSpanElement>(null);
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<number>();
   
-  const [displayText, setDisplayText] = useState(neverDecrypt ? text.split('').map(() => '\u00A0').join('') : text);
+  const [displayText, setDisplayText] = useState(
+    neverDecrypt ? text.split('').map(() => '\u00A0').join('') : text
+  );
 
   const scramble = useCallback(() => {
     const element = ref.current;
     if (!element) return;
 
     let iteration = 0;
-    
-    clearInterval(intervalRef.current);
-    
-    intervalRef.current = setInterval(() => {
+
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    intervalRef.current = window.setInterval(() => {
       element.innerText = text
         .split('')
         .map((char, index) => {
-          if(!neverDecrypt && index < iteration) {
+          if (!neverDecrypt && index < iteration) {
             return text[index];
           }
-          if(char === ' ') return ' ';
-          return chars[Math.floor(Math.random() * chars.length)]
+          if (char === ' ') return ' ';
+          return chars[Math.floor(Math.random() * chars.length)];
         })
         .join('');
-      
-      if(!neverDecrypt && iteration >= text.length){
+
+      if (!neverDecrypt && iteration >= text.length) {
         clearInterval(intervalRef.current);
       }
-      
+
       iteration += 1;
     }, 30);
   }, [text, neverDecrypt]);
@@ -55,10 +64,10 @@ export function AnimatedText({ text, className, delay = 0, triggerOnHover = fals
     if (triggerOnHover) {
       element.addEventListener('mouseenter', scramble);
     } else {
-      const timeout = setTimeout(scramble, delay);
+      const timeout = window.setTimeout(scramble, delay);
       return () => clearTimeout(timeout);
     }
-    
+
     return () => {
       if (triggerOnHover) {
         element.removeEventListener('mouseenter', scramble);
@@ -67,5 +76,9 @@ export function AnimatedText({ text, className, delay = 0, triggerOnHover = fals
     };
   }, [text, delay, triggerOnHover, scramble]);
 
-  return <span ref={ref} className={cn('font-code', className)}>{displayText}</span>;
+  return (
+    <span ref={ref} className={cn('font-code', className)}>
+      {displayText}
+    </span>
+  );
 }

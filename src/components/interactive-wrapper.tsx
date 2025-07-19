@@ -174,23 +174,26 @@ export function InteractiveWrapper({ children, showWallpaper = false }: { childr
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
       {showWallpaper && (
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ease-in"
-          style={{ 
-            backgroundImage: "url('/images/a3.jpg')",
-            opacity: isLoaded ? 1 : 0
-          }}
-        >
-        </div>
+        <>
+          <div 
+            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ease-in"
+            style={{ 
+              backgroundImage: "url('/images/a3.jpg')",
+             opacity: isLoaded ? 0.8 : 0
+            }}
+            onLoad={() => console.log('Background image loaded')}
+          />
+          <div className="absolute inset-0 z-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
+        </>
       )}
+      <canvas ref={particleCanvasRef} className="absolute inset-0 z-[1] pointer-events-none" />
       <canvas 
         ref={fogCanvasRef} 
         className={cn(
-          "absolute inset-0 z-10 mix-blend-screen transition-opacity duration-1000 ease-in",
-          isLoaded ? "opacity-50" : "opacity-0"
+          "absolute inset-0 z-[2] mix-blend-screen transition-opacity duration-1000 ease-in pointer-events-none",
+          isLoaded ? "opacity-15" : "opacity-0"
         )} 
       />
-      <canvas ref={particleCanvasRef} className="absolute inset-0 z-0" />
       {children}
     </div>
   );

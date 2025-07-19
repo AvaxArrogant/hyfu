@@ -1,5 +1,5 @@
 import { AnimatedText } from "./animated-text";
-import { Button } from "./ui/button";
+import { CustomConnectButton } from "./custom-connect-button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -10,12 +10,7 @@ const navItems = [
     { name: 'MINT', href: '/mint'},
 ];
 
-interface HeaderProps {
-    isConnected: boolean;
-    onConnect: () => void;
-}
-
-export function Header({ isConnected, onConnect }: HeaderProps) {
+export function Header() {
     return (
         <header className="p-4 md:p-8 text-white opacity-0" style={{ animation: 'fade-in 1s ease-out 0.2s forwards' }}>
             <div className="max-w-7xl mx-auto">
@@ -27,16 +22,7 @@ export function Header({ isConnected, onConnect }: HeaderProps) {
                             triggerOnHover={true}
                         />
                     </a>
-                    <Button
-                        onClick={onConnect}
-                        variant="outline"
-                        className={cn(
-                            "bg-transparent border-white/50 text-white hover:bg-white/10 hover:text-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-300 text-xs md:text-sm px-2 md:px-4",
-                            isConnected && "border-accent/50 bg-accent/10 text-accent shadow-md shadow-accent/50 hover:bg-accent/20 hover:text-accent hover:border-accent"
-                        )}
-                    >
-                        {isConnected ? "Connected" : "Connect Wallet"}
-                    </Button>
+                    <CustomConnectButton />
                 </div>
                 <div className="h-px w-full bg-white/20 my-4" />
                 <nav>

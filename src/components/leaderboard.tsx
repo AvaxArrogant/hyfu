@@ -1,23 +1,18 @@
-
 'use client';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trophy } from "lucide-react";
+import { Trophy, Crown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createClient } from '@supabase/supabase-js';
 
-// Mock data for the leaderboard
-const leaderboardData = [
-  { rank: 1, address: "0x1234...abcd", invites: 150 },
-  { rank: 2, address: "hyperfueled.hype", invites: 125 },
-  { rank: 3, address: "0x5678...efgh", invites: 110 },
-  { rank: 4, address: "0x9abc...ijkl", invites: 95 },
-  { rank: 5, address: "0xdef0...mnop", invites: 82 },
-  { rank: 6, address: "future.hype", invites: 70 },
-  { rank: 7, address: "0x1a2b...3c4d", invites: 65 },
-  { rank: 8, address: "0x5e6f...7g8h", invites: 53 },
-  { rank: 9, address: "king.hype", invites: 48 },
-  { rank: 10, address: "0x9i0j...1k2l", invites: 42 },
-];
+interface LeaderboardEntry {
+  rank: number;
+  address: string;
+  displayAddress: string;
+  invites: number;
+  isHypeDomain: boolean;
+}
 
 interface LeaderboardProps {
     isOpen: boolean;
@@ -25,6 +20,65 @@ interface LeaderboardProps {
 }
 
 export function Leaderboard({ isOpen, onOpenChange }: LeaderboardProps) {
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchLeaderboard();
+    }
+  }, [isOpen]);
+
+  const fetchLeaderboard = async () => {
+    setIsLoading(true);
+    try {
+      // Create client-side supabase instance
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      
+      const { data, error } = await supabase.functions.invoke('leaderboard');
+      
+      if (error) {
+        console.error('Supabase function error:', error);
+        return;
+      }
+      
+      if (data && data.leaderboard) {
+        setLeaderboardData(data.leaderboard);
+      }
+    } catch (error) {
+      console.error('Failed to fetch leaderboard:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fallback method using direct fetch if supabase client fails
+  const fetchLeaderboardFallback = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL!}/functions/v1/leaderboard`, {
+        headers: {
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setLeaderboardData(data.leaderboard || []);
+      } else {
+        console.error('Leaderboard fetch failed:', data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch leaderboard:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="bg-black/80 backdrop-blur-sm border-r border-white/10 text-white w-[400px] sm:w-[540px] p-0">
@@ -39,6 +93,11 @@ export function Leaderboard({ isOpen, onOpenChange }: LeaderboardProps) {
             </SheetDescription>
           </SheetHeader>
           <div className="mt-8">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+              </div>
+            ) : (
               <Table>
                   <TableHeader>
                       <TableRow className="border-b-white/20 hover:bg-white/5">
@@ -48,15 +107,36 @@ export function Leaderboard({ isOpen, onOpenChange }: LeaderboardProps) {
                       </TableRow>
                   </TableHeader>
                   <TableBody>
-                      {leaderboardData.map((user) => (
+                      {leaderboardData.length > 0 ? leaderboardData.map((user) => (
                       <TableRow key={user.rank} className="border-b-white/10 hover:bg-white/5">
-                          <TableCell className="font-medium">{user.rank}</TableCell>
-                          <TableCell className="font-code">{user.address}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {user.rank === 1 && <Crown className="w-4 h-4 text-yellow-500" />}
+                              {user.rank}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-code">
+                            <div className="flex items-center gap-2">
+                              {user.isHypeDomain && (
+                                <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">
+                                  .hype
+                                </span>
+                              )}
+                              {user.displayAddress}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-right font-bold text-accent">{user.invites}</TableCell>
                       </TableRow>
-                      ))}
+                      )) : (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center py-8 text-foreground/60">
+                            No referrals yet. Be the first!
+                          </TableCell>
+                        </TableRow>
+                      )}
                   </TableBody>
               </Table>
+            )}
           </div>
         </div>
       </SheetContent>

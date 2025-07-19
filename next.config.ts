@@ -2,6 +2,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  serverExternalPackages: ['@supabase/supabase-js'],
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -12,25 +13,25 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'placehold.co',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'assets.coingecko.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'safe.global',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pbs.twimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
         port: '',
         pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cryptologos.cc',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.iconscout.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'goldsky.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'chainstack.com',
       },
     ],
   },
